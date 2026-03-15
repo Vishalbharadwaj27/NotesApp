@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button, Typography, Space } from 'antd';
+import { Card, Button, Typography, Space, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
@@ -21,7 +21,12 @@ const NoteCard = ({ note, onEdit, onDelete }) => {
       ]}
     >
       <Text>{preview}</Text>
-      <br />
+      <div style={{ marginTop: 8 }}>
+        <Tag color={note.priority === 'HIGH' ? 'red' : note.priority === 'MEDIUM' ? 'orange' : 'blue'}>
+          {note.priority || 'LOW'}
+        </Tag>
+        {note.completed && <Tag color="green">COMPLETED</Tag>}
+      </div>
       <br />
       <Text type="secondary">Created: {new Date(note.created_at).toLocaleDateString()}</Text>
     </Card>

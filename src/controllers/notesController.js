@@ -5,8 +5,8 @@ const db = require('../db/mysql');
 const createNote = async (req, res) => {
   try {
     // Secure: Get user_id from the token (req.user), not the body
-    const userId = req.user.userId; 
-    const { title, content } = req.body;
+    const userId = req.user.userId;
+    const { title, content, priority } = req.body;
 
     // Validation
     if (!title) {
@@ -14,8 +14,8 @@ const createNote = async (req, res) => {
     }
 
     const [result] = await db.query(
-      'INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)',
-      [userId, title, content]
+      'INSERT INTO notes (user_id, title, content, priority) VALUES (?, ?, ?, ?)',
+      [userId, title, content, priority || 'LOW']
     );
 
     res.status(201).json({
@@ -54,7 +54,7 @@ const getNotes = async (req, res) => {
     query += ' ORDER BY n.created_at DESC';
 
     const [rows] = await db.query(query, params);
-    
+
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -69,7 +69,7 @@ const getNoteById = async (req, res) => {
 
     // Secure: Check if note exists AND belongs to the user
     const [rows] = await db.query(
-      'SELECT * FROM notes WHERE id = ? AND user_id = ?', 
+      'SELECT * FROM notes WHERE id = ? AND user_id = ?',
       [id, userId]
     );
 
@@ -87,22 +87,22 @@ const getNoteById = async (req, res) => {
 const updateNote = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, is_archived } = req.body;
+    const { title, content, is_archived, priority, completed } = req.body;
     const userId = req.user.userId;
 
     // Secure: Verify ownership before updating
     const [existing] = await db.query(
-      'SELECT * FROM notes WHERE id = ? AND user_id = ?', 
+      'SELECT * FROM notes WHERE id = ? AND user_id = ?',
       [id, userId]
     );
-    
+
     if (existing.length === 0) {
       return res.status(404).json({ message: 'Note not found or access denied' });
     }
 
     await db.query(
-      'UPDATE notes SET title = ?, content = ?, is_archived = ? WHERE id = ?',
-      [title, content, is_archived, id]
+      'UPDATE notes SET title = ?, content = ?, is_archived = ?, priority = ?, completed = ? WHERE id = ?',
+      [title, content, is_archived, priority, completed, id]
     );
 
     res.status(200).json({ message: 'Note updated successfully' });
@@ -119,7 +119,7 @@ const deleteNote = async (req, res) => {
 
     // Secure: Verify ownership before deleting
     const [result] = await db.query(
-      'DELETE FROM notes WHERE id = ? AND user_id = ?', 
+      'DELETE FROM notes WHERE id = ? AND user_id = ?',
       [id, userId]
     );
 

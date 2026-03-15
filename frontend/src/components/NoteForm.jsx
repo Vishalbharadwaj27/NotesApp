@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Space } from 'antd';
+import { Form, Input, Button, Space, Select } from 'antd';
 
 const { TextArea } = Input;
 
@@ -34,6 +34,17 @@ const NoteForm = ({ initialValues = {}, onSubmit, onCancel, loading = false }) =
         rules={[{ required: true, message: 'Please enter content' }]}
       >
         <TextArea rows={6} placeholder="Enter note content" />
+      </Form.Item>
+      <Form.Item
+        name="priority"
+        label="Priority"
+        initialValue="LOW"
+      >
+        <Select>
+          <Select.Option value="HIGH">HIGH</Select.Option>
+          <Select.Option value="MEDIUM">MEDIUM</Select.Option>
+          <Select.Option value="LOW">LOW</Select.Option>
+        </Select>
       </Form.Item>
       <Form.Item>
         <Space>

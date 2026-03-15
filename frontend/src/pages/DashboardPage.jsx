@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Modal, message, Spin } from 'antd';
+import { Row, Col, Button, Modal, message, Spin, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useSearchParams } from 'react-router-dom';
 import AppLayout from '../layout/AppLayout';
 import NoteCard from '../components/NoteCard';
 import NoteForm from '../components/NoteForm';
 import SearchBar from '../components/SearchBar';
+import NotificationPanel from '../components/NotificationPanel';
 import { getNotes, createNote, updateNote, deleteNote } from '../api/notesApi';
 
 const DashboardPage = () => {
@@ -23,7 +24,18 @@ const DashboardPage = () => {
       const params = {};
       if (search) params.search = search;
       const data = await getNotes(params);
-      setNotes(data);
+
+      const priorityWeight = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+      const sortedData = data.sort((a, b) => {
+        const weightA = priorityWeight[a.priority] || 1;
+        const weightB = priorityWeight[b.priority] || 1;
+        if (weightB !== weightA) {
+          return weightB - weightA;
+        }
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+
+      setNotes(sortedData);
     } catch (error) {
       message.error('Failed to fetch notes');
     } finally {
@@ -99,9 +111,16 @@ const DashboardPage = () => {
     <AppLayout>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <SearchBar onSearch={handleSearch} />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-          Create Note
-        </Button>
+        <Space>
+          <NotificationPanel
+            notes={notes}
+            onUpdateNote={fetchNotes}
+            onDeleteNote={fetchNotes}
+          />
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            Create Note
+          </Button>
+        </Space>
       </div>
       {loading ? (
         <Spin size="large" style={{ display: 'block', margin: '50px auto' }} />
